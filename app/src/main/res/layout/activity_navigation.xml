@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context="garg.navigator.Navigation">
+
+    <TextView
+        android:textSize="24sp"
+        android:id="@+id/text_destination"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Destination : LHTC, IIITDMJ" />
+
+    <TextView
+        android:textSize="20sp"
+        android:id="@+id/time_to_reach"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total time:- 10 min" />
+
+    <TextView
+        android:paddingTop="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Directions:-" />
+
+    <ListView
+        android:id="@+id/list"
+        android:paddingTop="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:textAppearance="?android:textAppearanceMedium" />
+</LinearLayout>
+
