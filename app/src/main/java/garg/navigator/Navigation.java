@@ -1,18 +1,9 @@
 package garg.navigator;
 
-import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
-import android.app.Service;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.SystemClock;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
@@ -29,20 +20,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.HttpURLConnection;
 
-import java.net.InetAddress;
 import java.net.MalformedURLException;
-import java.net.SocketException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutionException;
 
-public class Navigation extends AppCompatActivity {
+interface JsonCallback {
+    void jsonDataCallback(String result);
+}
+
+public class Navigation extends AppCompatActivity implements JsonCallback {
 
     private String mDestination, mOrigin;
     private TextView mDestinationText, mTimeToReach, mEmptyStateTextView;
@@ -70,35 +58,16 @@ public class Navigation extends AppCompatActivity {
         mTimeToReach = (TextView) findViewById(R.id.time_to_reach);
         mDestinationText.setText("Destination:- " + mDestination);
 
-        try {
-            Uri uri = Uri.parse(BASE_URL)
-                    .buildUpon()
-                    .appendQueryParameter("origin", mOrigin)
-                    .appendQueryParameter("destination", mDestination)
-                    .appendQueryParameter("key", API_KEY)
-                    .build();
-            String url = uri.toString();
-            Log.e("url", url);
-            String string = new JsonTask().execute(url).get();
-            jsonObject = new JSONObject(string);
-            Log.e("string", string);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        Uri uri = Uri.parse(BASE_URL)
+                .buildUpon()
+                .appendQueryParameter("origin", mOrigin)
+                .appendQueryParameter("destination", mDestination)
+                .appendQueryParameter("key", API_KEY)
+                .build();
+        String url = uri.toString();
+        Log.e("url", url);
 
-        mTimeToReach.setText("Total time:- " + getDuration(jsonObject));
-
-        listView = (ListView) findViewById(R.id.list);
-        mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
-        listView.setEmptyView(mEmptyStateTextView);
-        adapter = new Adapter(Navigation.this, new ArrayList<Model>());
-        listView.setAdapter(adapter);
-        adapter.addAll(getDirections(jsonObject));
-
+        AsyncTask task = new JsonTask(this).execute(url);
     }
 
     private static String getDuration(JSONObject json) {
@@ -136,7 +105,30 @@ public class Navigation extends AppCompatActivity {
         return Jsoup.parse(html).text();
     }
 
+    public void jsonDataCallback(String result) {
+        try {
+            jsonObject = new JSONObject(result);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Log.e("string", result);
+
+        mTimeToReach.setText("Total time:- " + getDuration(jsonObject));
+
+        listView = (ListView) findViewById(R.id.list);
+        mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
+        listView.setEmptyView(mEmptyStateTextView);
+        adapter = new Adapter(Navigation.this, new ArrayList<Model>());
+        listView.setAdapter(adapter);
+        adapter.addAll(getDirections(jsonObject));
+    }
+
     private class JsonTask extends AsyncTask<String, String, String> {
+        private JsonCallback cb;
+        public JsonTask(JsonCallback callback) {
+            cb = callback;
+        }
+
         protected void onPreExecute() {
             super.onPreExecute();
             pd = new ProgressDialog(Navigation.this);
@@ -186,11 +178,7 @@ public class Navigation extends AppCompatActivity {
             if (pd.isShowing()) {
                 pd.dismiss();
             }
-            try {
-                jsonObject = new JSONObject(result);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            cb.jsonDataCallback(result);
         }
     }
 /**
