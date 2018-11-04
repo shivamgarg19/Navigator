@@ -56,7 +56,7 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
     TrackingService mMyService;
     private ArrayList<String> mIPAddress;
     ArrayList<Model> mDirections;
-    int currentDirectionIndex = 0;
+    int currentDirectionIndex = -1;
 
 
     @Override
@@ -83,7 +83,7 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
 
         AsyncTask task = new JsonTask(this).execute(url);
         // Use below for testing
-        //AsyncTask task = new JsonTask(this).execute("https://pastebin.com/raw/a5nkgkjm");
+        //AsyncTask task = new JsonTask(this).execute("https://pastebin.com/raw/8pA4bgcz");
 
         doBindService();
     }
@@ -99,14 +99,20 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
                             @Override
                             public void run() {
                                 Location currentLocation = mMyService.location.getLastLocation();
-                                Log.e("location", currentLocation.toString());
-                                if (currentLocation.distanceTo(mDirections.get(currentDirectionIndex + 1).getLocation()) < 20) {
+                                if (currentDirectionIndex + 1 >= mDirections.size()) {
+                                    return;
+                                }
+                                Location target = mDirections.get(currentDirectionIndex + 1).getLocation();
+                                float distance = currentLocation.distanceTo(mDirections.get(currentDirectionIndex + 1).getLocation());
+                                if (distance < 20) {
                                     currentDirectionIndex++;
-                                    Toast.makeText(Navigation.this, "Reached naer destination", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(Navigation.this, "Reached near destination", Toast.LENGTH_SHORT).show();
                                     for (String ip : mIPAddress) {
                                         new UpdateTask().execute("http://" + ip + "/update", mDirections.get(currentDirectionIndex).getDirection().toString());
                                     }
                                 }
+                                Log.i("location", "target("+currentDirectionIndex+1+")=" + target.getLatitude() + "," + target.getLongitude() +
+                                                    "current="+currentLocation.getLatitude() + "," + currentLocation.getLongitude());
                             }
                         });
                     } catch (InterruptedException e) {
@@ -137,7 +143,6 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
     private static ArrayList<Model> getDirections(JSONObject json) {
         ArrayList<Model> ret = new ArrayList<>();
         try {
-            Location location = new Location("location");
             JSONArray array = json
                     .getJSONArray("routes").getJSONObject(0)
                     .getJSONArray("legs").getJSONObject(0)
@@ -145,8 +150,9 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
 
             for (int i = 0; i < array.length(); ++i) {
                 JSONObject step = array.getJSONObject(i);
+                Location location = new Location("location");
                 location.setLatitude((Double) step.getJSONObject("end_location").get("lat"));
-                location.setLongitude((Double) step.getJSONObject("end_location").get("lat"));
+                location.setLongitude((Double) step.getJSONObject("end_location").get("lng"));
                 Log.e("loc", location.toString());
                 ret.add(new Model(html2text(step.get("html_instructions").toString()),
                         html2text(step.getJSONObject("duration").get("text").toString()),
