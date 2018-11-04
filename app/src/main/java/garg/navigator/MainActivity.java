@@ -82,14 +82,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         startService(new Intent(this, TrackingService.class));
-        myDatagramReceiver = new MyDatagramReceiver();
-        myDatagramReceiver.start();
         doBindService();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        myDatagramReceiver = new MyDatagramReceiver();
+        myDatagramReceiver.start();
         doBindService();
     }
 
