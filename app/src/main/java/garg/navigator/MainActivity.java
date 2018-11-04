@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.net.DatagramPacket;
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button mNavigationButton;
     private EditText mDestination;
+    private TextView mDeviceConnected;
 //    private MyLocation mLocation = new MyLocation();
     private String mStartingPoint;
     private MyDatagramReceiver myDatagramReceiver = null;
@@ -38,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
         mNavigationButton = (Button) findViewById(R.id.navigate);
         mDestination = (EditText) findViewById(R.id.destination);
+        mDeviceConnected = (TextView) findViewById(R.id.device_connected);
 
         /**
          MyLocation.LocationResult locationResult = new MyLocation.LocationResult() {
@@ -74,12 +77,11 @@ public class MainActivity extends AppCompatActivity {
     public boolean checkConnectivity() {
         ConnectivityManager connMgr = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-
-        if (!(networkInfo != null && networkInfo.isConnected())) {
-            return false;
+        NetworkInfo networkInfo = null;
+        if (connMgr != null) {
+            networkInfo = connMgr.getActiveNetworkInfo();
         }
-        return true;
+        return networkInfo != null && networkInfo.isConnected();
     }
 
     @Override
@@ -163,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
                     socket.send(new DatagramPacket(reply, reply.length, packet.getSocketAddress()));
 
                     mIPAddresses.add(IPAddress);
+                    mDeviceConnected.setText(String.format("Device Connected: %d", mIPAddresses.size()));
                     Log.i("boardcast-listener", "Added address: " + IPAddress);
                 }
             } catch (Throwable e) {

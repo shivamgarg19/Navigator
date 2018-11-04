@@ -29,7 +29,7 @@
             android:name=".TrackingService"
             android:enabled="true"
             android:exported="true" />
-        <service android:name=".Navigation$ClientSend" />
+
     </application>
 
 </manifest>
