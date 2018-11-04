@@ -1,9 +1,15 @@
 package garg.navigator;
 
 import android.app.ProgressDialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
@@ -49,6 +55,8 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
     private ListView listView;
     TrackingService mMyService;
     private ArrayList<String> mIPAddress;
+    ArrayList<Model> mDirections;
+    int currentDirectionIndex = 0;
 
 
     @Override
@@ -64,7 +72,6 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         mDestinationText = (TextView) findViewById(R.id.text_destination);
         mTimeToReach = (TextView) findViewById(R.id.time_to_reach);
         mDestinationText.setText("Destination:- " + mDestination);
-
         Uri uri = Uri.parse(BASE_URL)
                 .buildUpon()
                 .appendQueryParameter("origin", mOrigin)
@@ -77,6 +84,39 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         AsyncTask task = new JsonTask(this).execute(url);
         // Use below for testing
         //AsyncTask task = new JsonTask(this).execute("https://pastebin.com/raw/a5nkgkjm");
+
+        doBindService();
+    }
+
+    private void checkLocation() {
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                while (!isInterrupted()) {
+                    try {
+                        Thread.sleep(10000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Location currentLocation = mMyService.location.getLastLocation();
+                                Log.e("location", currentLocation.toString());
+                                if (currentLocation.distanceTo(mDirections.get(currentDirectionIndex + 1).getLocation()) < 20) {
+                                    currentDirectionIndex++;
+                                    Toast.makeText(Navigation.this, "Reached naer destination", Toast.LENGTH_SHORT).show();
+                                    for (String ip : mIPAddress) {
+                                        new UpdateTask().execute("http://" + ip + "/update", mDirections.get(currentDirectionIndex).getDirection().toString());
+                                    }
+                                }
+                            }
+                        });
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+
+        t.start();
     }
 
     private static String getDuration(JSONObject json) {
@@ -88,6 +128,7 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
                     .getJSONObject("duration")
                     .get("text");
         } catch (JSONException | NullPointerException e) {
+            e.printStackTrace();
         }
 
         return Html.fromHtml(distance).toString();
@@ -96,15 +137,23 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
     private static ArrayList<Model> getDirections(JSONObject json) {
         ArrayList<Model> ret = new ArrayList<>();
         try {
+            Location location = new Location("location");
             JSONArray array = json
                     .getJSONArray("routes").getJSONObject(0)
                     .getJSONArray("legs").getJSONObject(0)
                     .getJSONArray("steps");
+
             for (int i = 0; i < array.length(); ++i) {
                 JSONObject step = array.getJSONObject(i);
+                location.setLatitude((Double) step.getJSONObject("end_location").get("lat"));
+                location.setLongitude((Double) step.getJSONObject("end_location").get("lat"));
+                Log.e("loc", location.toString());
                 ret.add(new Model(html2text(step.get("html_instructions").toString()),
-                                  html2text(step.getJSONObject("duration").get("text").toString()),
-                                  Directions.fromString(step.optString("maneuver", "straight"))));
+                        html2text(step.getJSONObject("duration").get("text").toString()),
+                        Directions.fromString(step.optString("maneuver", "straight")),
+                        location
+                ));
+
             }
         } catch (JSONException | NullPointerException e) {
             e.printStackTrace();
@@ -122,32 +171,43 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
 
         try {
             jsonObject = new JSONObject(result);
+            mDirections = getDirections(jsonObject);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         Log.e("string", result);
 
         mTimeToReach.setText("Total time:- " + getDuration(jsonObject));
-
         listView = (ListView) findViewById(R.id.list);
         mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
         listView.setEmptyView(mEmptyStateTextView);
+
         adapter = new Adapter(Navigation.this, new ArrayList<Model>());
         listView.setAdapter(adapter);
-        adapter.addAll(getDirections(jsonObject));
+        adapter.addAll(mDirections);
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Model m = (Model)listView.getItemAtPosition(position);
+                Model m = (Model) listView.getItemAtPosition(position);
                 for (String ip : mIPAddress) {
                     new UpdateTask().execute("http://" + ip + "/update", m.getDirection().toString());
                 }
             }
         });
+        checkLocation();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Thread.interrupted();
+        //t.interrupted();
     }
 
     private class JsonTask extends AsyncTask<String, String, String> {
         private JsonCallback cb;
+
         public JsonTask(JsonCallback callback) {
             cb = callback;
         }
@@ -251,94 +311,24 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
             }
         }
     }
-/**
- public class ClientSend extends Thread {
 
- //@Override
- public void onCreate() {
- // super.onCreate();
- Log.e("service", "started");
- }
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            mMyService = ((TrackingService.ServiceBinder) service).getService();
+        }
 
- Handler handler = new Handler();
- private Runnable periodicUpdate = new Runnable() {
-@Override public void run() {
-handler.postDelayed(periodicUpdate, 10*1000 - SystemClock.elapsedRealtime()%1000);
-Log.e("run","run");
-// TODO whatever you want to do below
+        public void onServiceDisconnected(ComponentName className) {
+            mMyService = null;
+        }
+    };
 
-}
-};
+    void doBindService() {
+        bindService(new Intent(this, TrackingService.class), mConnection, Context.BIND_AUTO_CREATE);
+    }
 
- public void sendMessage(String message) {
- try {
- DatagramSocket udpSocket = new DatagramSocket(23001);
- byte[] buf = message.getBytes();
- for (String ip : mIPAddresses) {
- InetAddress serverAddr = InetAddress.getByName(ip);
- DatagramPacket packet = new DatagramPacket(buf, buf.length, serverAddr, 23001);
- udpSocket.send(packet);
- }
- } catch (IOException e) {
- e.printStackTrace();
- }
- }
+    void doUnbindService() {
+        // Detach our existing connection.
+        //        unbindService(mConnection);
+    }
 
- private String getLatitude() {
- return String.valueOf(mMyService.location.getLastLocation().getLatitude());
- }
-
- private String getLongitude() {
- return String.valueOf(mMyService.location.getLastLocation().getLongitude());
- }
-
- @Nullable
- //@Override
- public IBinder onBind(Intent intent) {
- return null;
- }
- }
-
-
-
- @Override protected void onStart() {
- super.onStart();
- startService(new Intent(this, TrackingService.class));
- doBindService();
- }
-
- @Override protected void onResume() {
- super.onResume();
- doBindService();
- }
-
- @Override protected void onPause() {
- super.onPause();
- doUnbindService();
- }
-
- @Override protected void onStop() {
- super.onStop();
- doUnbindService();
- }
-
-
- private ServiceConnection mConnection = new ServiceConnection() {
- public void onServiceConnected(ComponentName className, IBinder service) {
- mMyService = ((TrackingService.ServiceBinder) service).getService();
- }
-
- public void onServiceDisconnected(ComponentName className) {
- mMyService = null;
- }
- };
-
- void doBindService() {
- bindService(new Intent(this, TrackingService.class), mConnection, Context.BIND_AUTO_CREATE);
- }
-
- void doUnbindService() {
- // Detach our existing connection.
- //        unbindService(mConnection);
- }**/
 }
