@@ -30,7 +30,7 @@ public class Adapter extends ArrayAdapter<Model> {
         Model current = getItem(position);
 
         TextView direction = (TextView) listItemView.findViewById(R.id.direction);
-        direction.setText(current.getDirection());
+        direction.setText(current.getHtmlDirection());
 
         TextView time = (TextView) listItemView.findViewById(R.id.time);
         time.setText(current.getTime());

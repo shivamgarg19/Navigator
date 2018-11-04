@@ -18,6 +18,7 @@ import android.widget.Toast;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -28,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private String mStartingPoint;
     private MyDatagramReceiver myDatagramReceiver = null;
     TrackingService mMyService;
-    ArrayList<String> mIPAddress;
+    HashSet<String> mIPAddresses = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent i = new Intent(MainActivity.this, Navigation.class);
                     i.putExtra("Destination", Destination);
                     i.putExtra("Origin", mStartingPoint);
-                    i.putExtra("IPAddress", mIPAddress);
+                    i.putExtra("IPAddress", new ArrayList<String>(mIPAddresses));
                     startActivity(i);
                 }
             }
@@ -92,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         myDatagramReceiver = new MyDatagramReceiver();
-        //myDatagramReceiver.start();
+        myDatagramReceiver.start();
         doBindService();
     }
 
@@ -143,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
         private String lastMessage = "";
 
         public void run() {
+            Log.i("broadcast-listener", "udp listener started");
             String message;
             byte[] lmessage = new byte[10000];
             DatagramPacket packet = new DatagramPacket(lmessage, lmessage.length);
@@ -153,11 +155,15 @@ public class MainActivity extends AppCompatActivity {
                 while (bKeepRunning) {
                     socket.receive(packet);
                     message = new String(lmessage, 0, packet.getLength());
-                    String IPAddress = packet.getAddress().toString();
-                    if (!mIPAddress.contains(IPAddress))
-                        mIPAddress.add(IPAddress);
+                    String IPAddress = packet.getAddress().getHostAddress();
                     //runOnUiThread(updateTextMessage);
-                    Log.e("packet", message);
+                    Log.i("boardcast-listener", message);
+
+                    byte[] reply = "ack".getBytes();
+                    socket.send(new DatagramPacket(reply, reply.length, packet.getSocketAddress()));
+
+                    mIPAddresses.add(IPAddress);
+                    Log.i("boardcast-listener", "Added address: " + IPAddress);
                 }
             } catch (Throwable e) {
                 e.printStackTrace();

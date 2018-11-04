@@ -1,31 +1,32 @@
 package garg.navigator;
 
-/**
- * Created by Shivam Garg on 08-10-2018.
- */
-
 public class Model {
-    private String mDirection, mTime;
+    private String mHtmlDirection, mTime;
+    private Directions mDirection;
 
-    public Model(String direction, String time){
-        mDirection = direction;
+    public Model(String html, String time, Directions direction){
+        mHtmlDirection = html;
         mTime = time;
-    }
-
-    private void setDirection(String direction){
         mDirection = direction;
     }
 
-    private void setTime(String time){
-        mTime = time;
-    }
+//    private void setDirection(String direction){
+//        mHtmlDirection = direction;
+//    }
 
-    public String getDirection(){
-        return mDirection;
+//    private void setTime(String time){
+//        mTime = time;
+//    }
+
+    public String getHtmlDirection(){
+        return mHtmlDirection;
     }
 
     public String getTime(){
         return mTime;
     }
 
+    public Directions getDirection() {
+        return mDirection;
+    }
 }

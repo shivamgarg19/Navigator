@@ -8,18 +8,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 
 import java.net.MalformedURLException;
@@ -68,6 +75,8 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         Log.e("url", url);
 
         AsyncTask task = new JsonTask(this).execute(url);
+        // Use below for testing
+        //AsyncTask task = new JsonTask(this).execute("https://pastebin.com/raw/a5nkgkjm");
     }
 
     private static String getDuration(JSONObject json) {
@@ -93,7 +102,9 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
                     .getJSONArray("steps");
             for (int i = 0; i < array.length(); ++i) {
                 JSONObject step = array.getJSONObject(i);
-                ret.add(new Model(html2text(step.get("html_instructions").toString()), html2text(step.getJSONObject("duration").get("text").toString())));
+                ret.add(new Model(html2text(step.get("html_instructions").toString()),
+                                  html2text(step.getJSONObject("duration").get("text").toString()),
+                                  Directions.fromString(step.optString("maneuver", "straight"))));
             }
         } catch (JSONException | NullPointerException e) {
             e.printStackTrace();
@@ -106,6 +117,9 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
     }
 
     public void jsonDataCallback(String result) {
+        if (result == null)
+            return;
+
         try {
             jsonObject = new JSONObject(result);
         } catch (JSONException e) {
@@ -121,6 +135,15 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         adapter = new Adapter(Navigation.this, new ArrayList<Model>());
         listView.setAdapter(adapter);
         adapter.addAll(getDirections(jsonObject));
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                Model m = (Model)listView.getItemAtPosition(position);
+                for (String ip : mIPAddress) {
+                    new UpdateTask().execute("http://" + ip + "/update", m.getDirection().toString());
+                }
+            }
+        });
     }
 
     private class JsonTask extends AsyncTask<String, String, String> {
@@ -153,8 +176,6 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
                     //Log.d("Response: ", "> " + line);   //here u ll get whole response...... :-)
                 }
                 return buffer.toString();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -181,6 +202,55 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
             cb.jsonDataCallback(result);
         }
     }
+
+    private class UpdateTask extends AsyncTask<String, String, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                Log.i("update-task", params[0]);
+                URL url = new URL(params[0]);
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("POST");
+                //urlConnection.setDoInput(true);
+                urlConnection.setDoOutput(true);
+
+                OutputStream os = urlConnection.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(os, "UTF-8"));
+
+                Uri.Builder builder = new Uri.Builder()
+                        .appendQueryParameter("maneuver", params[1]);
+
+                String query = builder.build().getEncodedQuery();
+                Log.i("update-task", query);
+                writer.write(query);
+                writer.flush();
+                writer.close();
+                os.close();
+
+
+                urlConnection.connect();
+
+                int responseCode = urlConnection.getResponseCode();
+                Log.i("update-task", "response code" + responseCode);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+
+            return "ok";
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            if (s != null && s.equals("ok")) {
+                Toast.makeText(Navigation.this, "Sent update to device", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(Navigation.this, "Failed to send update to device", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 /**
  public class ClientSend extends Thread {
 
@@ -204,7 +274,7 @@ Log.e("run","run");
  try {
  DatagramSocket udpSocket = new DatagramSocket(23001);
  byte[] buf = message.getBytes();
- for (String ip : mIPAddress) {
+ for (String ip : mIPAddresses) {
  InetAddress serverAddr = InetAddress.getByName(ip);
  DatagramPacket packet = new DatagramPacket(buf, buf.length, serverAddr, 23001);
  udpSocket.send(packet);
