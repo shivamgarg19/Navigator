@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.IBinder;
@@ -27,7 +28,6 @@ public class MainActivity extends AppCompatActivity {
     private Button mNavigationButton;
     private EditText mDestination;
     private TextView mDeviceConnected;
-//    private MyLocation mLocation = new MyLocation();
     private String mStartingPoint;
     private MyDatagramReceiver myDatagramReceiver = null;
     TrackingService mMyService;
@@ -42,27 +42,21 @@ public class MainActivity extends AppCompatActivity {
         mDestination = (EditText) findViewById(R.id.destination);
         mDeviceConnected = (TextView) findViewById(R.id.device_connected);
 
-        /**
-         MyLocation.LocationResult locationResult = new MyLocation.LocationResult() {
-        @Override public void gotLocation(Location location) {
-        mStartingPoint = String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude());
-        Log.e("location", String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude()));
-        }
-        };
-         mLocation.getLocation(this, locationResult);
-         **/
-
         mNavigationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String Destination = mDestination.getText().toString();
-                mStartingPoint = String.valueOf(mMyService.location.getLastLocation().getLatitude()) + "," + String.valueOf(mMyService.location.getLastLocation().getLongitude());
+
+                if (mMyService.location != null) {
+                    Location location = mMyService.location.getLastLocation();
+                    mStartingPoint = String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude());
+                }
                 if (Destination.length() == 0) {
                     Toast.makeText(MainActivity.this, "Please enter the destination", Toast.LENGTH_SHORT).show();
                 } else if (!checkConnectivity()) {
                     Toast.makeText(MainActivity.this, "No Internet connection available", Toast.LENGTH_SHORT).show();
                 } else if (mStartingPoint == null) {
-                    Toast.makeText(MainActivity.this, "Unable to fetch Current location", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Unable to fetch Current location. Please try again", Toast.LENGTH_SHORT).show();
                 } else {
                     Intent i = new Intent(MainActivity.this, Navigation.class);
                     i.putExtra("Destination", Destination);
@@ -88,21 +82,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         startService(new Intent(this, TrackingService.class));
-        doBindService();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         myDatagramReceiver = new MyDatagramReceiver();
         myDatagramReceiver.start();
         doBindService();
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        doBindService();
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
-        myDatagramReceiver.kill();
         doUnbindService();
     }
 
@@ -111,14 +104,9 @@ public class MainActivity extends AppCompatActivity {
         super.onStop();
         myDatagramReceiver.kill();
         doUnbindService();
+        stopService(new Intent(this, TrackingService.class));
     }
 
-    private Runnable updateTextMessage = new Runnable() {
-        public void run() {
-            if (myDatagramReceiver == null) return;
-            //textMessage.setText(myDatagramReceiver.getLastMessage());
-        }
-    };
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -138,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
         // Detach our existing connection.
 //        unbindService(mConnection);
     }
-
 
 
     private class MyDatagramReceiver extends Thread {
@@ -190,10 +177,6 @@ public class MainActivity extends AppCompatActivity {
             Log.i("broadcast-listener", "killed");
             bKeepRunning = false;
             Thread.currentThread().interrupt();
-        }
-
-        public String getLastMessage() {
-            return lastMessage;
         }
     }
 }
