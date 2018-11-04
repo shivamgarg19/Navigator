@@ -148,13 +148,13 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             Log.i("broadcast-listener", "udp listener started");
             String message;
-            byte[] lmessage = new byte[10000];
-            DatagramPacket packet = new DatagramPacket(lmessage, lmessage.length);
             DatagramSocket socket = null;
+            byte[] lmessage = new byte[10000];
             try {
                 socket = new DatagramSocket(23001);
-
                 while (bKeepRunning) {
+                    Log.i("broadcast-listener", "waiting for broadcast");
+                    DatagramPacket packet = new DatagramPacket(lmessage, lmessage.length);
                     socket.receive(packet);
                     message = new String(lmessage, 0, packet.getLength());
                     String IPAddress = packet.getAddress().getHostAddress();
@@ -164,14 +164,17 @@ public class MainActivity extends AppCompatActivity {
                     byte[] reply = "ack".getBytes();
                     socket.send(new DatagramPacket(reply, reply.length, packet.getSocketAddress()));
 
-                    mIPAddresses.add(IPAddress);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mDeviceConnected.setText(String.format("Device Connected: %d", mIPAddresses.size()));
-                        }
-                    });
-                    Log.i("boardcast-listener", "Added address: " + IPAddress);
+                    boolean added = mIPAddresses.add(IPAddress);
+                    if (added) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mDeviceConnected.setText(String.format("Device Connected: %d", mIPAddresses.size()));
+                            }
+                        });
+                    }
+                    Log.i("broadcast-listener", "Added: " + added);
+                    Log.i("boardcast-listener", "Address: " + IPAddress);
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -180,9 +183,11 @@ public class MainActivity extends AppCompatActivity {
             if (socket != null) {
                 socket.close();
             }
+
         }
 
         public void kill() {
+            Log.i("broadcast-listener", "killed");
             bKeepRunning = false;
             Thread.currentThread().interrupt();
         }
