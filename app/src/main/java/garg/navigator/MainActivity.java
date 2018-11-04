@@ -165,7 +165,12 @@ public class MainActivity extends AppCompatActivity {
                     socket.send(new DatagramPacket(reply, reply.length, packet.getSocketAddress()));
 
                     mIPAddresses.add(IPAddress);
-                    mDeviceConnected.setText(String.format("Device Connected: %d", mIPAddresses.size()));
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mDeviceConnected.setText(String.format("Device Connected: %d", mIPAddresses.size()));
+                        }
+                    });
                     Log.i("boardcast-listener", "Added address: " + IPAddress);
                 }
             } catch (Throwable e) {
