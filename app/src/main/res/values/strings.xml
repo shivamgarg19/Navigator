@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Navigator</string>
-    <string name="about">A Navigation Assistant for two wheelers which uses visual and haptic feedback to provide information to the user</string>
+    <string name="about">A Navigation Assistant for two wheelers which uses visual and haptic feedback to provide information to the user.</string>
 </resources>
