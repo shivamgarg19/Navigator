@@ -13,8 +13,9 @@
         android:orientation="vertical">
 
         <ImageView
+            android:paddingTop="50dp"
             android:layout_width="200dp"
-            android:layout_height="200dp"
+            android:layout_height="250dp"
             android:layout_gravity="center"
             android:layout_marginTop="16dp"
             app:srcCompat="@drawable/logo_transparent" />
@@ -22,7 +23,8 @@
         <android.support.constraint.ConstraintLayout
             android:id="@+id/linearLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="20dp"
             android:gravity="center">
 
             <EditText
