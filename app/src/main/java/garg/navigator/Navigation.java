@@ -187,7 +187,7 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         }
         Log.e("string", result);
 
-        mTimeToReach.setText("Total time: " + getDuration(jsonObject));
+        mTimeToReach.setText("ETA: " + getDuration(jsonObject));
         listView = (ListView) findViewById(R.id.list);
         mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
         listView.setEmptyView(mEmptyStateTextView);

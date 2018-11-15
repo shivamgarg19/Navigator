@@ -21,9 +21,11 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -51,7 +53,6 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button mNavigationButton;
     private EditText mDestination;
     private TextView mDeviceConnected;
     private String mStartingPoint;
@@ -73,13 +74,17 @@ public class MainActivity extends AppCompatActivity {
             turnGPSOn();
         }
 
-        mNavigationButton = (Button) findViewById(R.id.navigate);
         mDestination = (EditText) findViewById(R.id.destination);
         mDeviceConnected = (TextView) findViewById(R.id.device_connected);
 
-        mNavigationButton.setOnClickListener(new View.OnClickListener() {
+        mDestination.setImeActionLabel("Navigate", EditorInfo.IME_ACTION_GO);
+        mDestination.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
-            public void onClick(View view) {
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId != EditorInfo.IME_ACTION_GO) {
+                    return false;
+                }
+
                 String Destination = mDestination.getText().toString();
 
                 if (!isMyServiceRunning(TrackingService.class)) {
@@ -107,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
                     i.putExtra("IPAddress", new ArrayList<String>(mIPAddresses));
                     startActivity(i);
                 }
+                return false;
             }
         });
     }
