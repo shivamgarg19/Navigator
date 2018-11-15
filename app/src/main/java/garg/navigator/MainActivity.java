@@ -72,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (!checkGPS()) {
             turnGPSOn();
         }
+
         mNavigationButton = (Button) findViewById(R.id.navigate);
         mDestination = (EditText) findViewById(R.id.destination);
         mDeviceConnected = (TextView) findViewById(R.id.device_connected);

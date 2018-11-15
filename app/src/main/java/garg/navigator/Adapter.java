@@ -16,12 +16,14 @@ import java.util.ArrayList;
  */
 
 public class Adapter extends ArrayAdapter<Model> {
-    public Adapter(@NonNull Context context, ArrayList<Model> resource) {
+
+    Adapter(@NonNull Context context, ArrayList<Model> resource) {
         super(context, 0, resource);
     }
 
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         View listItemView = convertView;
 
         if (listItemView == null) {
