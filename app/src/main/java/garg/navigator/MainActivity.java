@@ -10,6 +10,8 @@ import android.content.IntentSender;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -18,6 +20,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -74,6 +78,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
         if (!checkPermission()) {
             requestPermission();
         } else if (!checkGPS()) {
@@ -90,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                 if (actionId != EditorInfo.IME_ACTION_GO) {
                     return false;
                 }
-                navigate();
+                navigate(v.getText().toString());
                 return false;
             }
         });
@@ -99,11 +108,17 @@ public class MainActivity extends AppCompatActivity {
         navigate.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
-                navigate();
+                navigate(mDestination.getText().toString());
             }
         });
 
         recentsView = (ListView) findViewById(R.id.recent_list);
+        recentsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                navigate(mRecentLocations.get(i));
+            }
+        });
     }
 
     private boolean checkPermission() {
@@ -116,9 +131,7 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_CODE);
     }
 
-    private void navigate() {
-        String Destination = mDestination.getText().toString();
-
+    private void navigate(String destination) {
         if (!isMyServiceRunning(TrackingService.class)) {
             Log.e("Service", "Not Running");
             startService(new Intent(MainActivity.this, TrackingService.class));
@@ -131,15 +144,16 @@ public class MainActivity extends AppCompatActivity {
         if (!checkGPS()) {
             Toast.makeText(MainActivity.this, "You need to enable to GPS", Toast.LENGTH_SHORT).show();
             turnGPSOn();
-        } else if (Destination.length() == 0) {
+        } else if (destination.length() == 0) {
             Toast.makeText(MainActivity.this, "Please enter the destination", Toast.LENGTH_SHORT).show();
         } else if (!checkConnectivity()) {
             Toast.makeText(MainActivity.this, "No Internet connection available", Toast.LENGTH_SHORT).show();
         } else if (mStartingPoint == null) {
             Toast.makeText(MainActivity.this, "Unable to fetch Current location. Please try again", Toast.LENGTH_SHORT).show();
         } else {
+            addLocation(destination);
             Intent i = new Intent(MainActivity.this, Navigation.class);
-            i.putExtra("Destination", Destination);
+            i.putExtra("Destination", destination);
             i.putExtra("Origin", mStartingPoint);
             i.putExtra("IPAddress", new ArrayList<String>(mIPAddresses));
             startActivity(i);
@@ -275,7 +289,13 @@ public class MainActivity extends AppCompatActivity {
         if (mRecentLocations == null) {
             mRecentLocations = new ArrayList<String>();
         }
-        mRecentLocations.add(location);
+        int index = mRecentLocations.indexOf(location);
+        if (index == -1) {
+            mRecentLocations.add(0, location);
+        } else {
+            mRecentLocations.remove(index); // delete and move to top
+            mRecentLocations.add(0, location);
+        }
         
         SharedPreferences prefs = getSharedPreferences("recent_locations", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
