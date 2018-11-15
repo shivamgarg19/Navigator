@@ -8,12 +8,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
@@ -24,9 +24,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,6 +40,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.ArrayList;
@@ -62,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 200;
     private boolean mBound = false, gps = false;
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
+    ArrayList<String> mRecentLocations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 } else if (mStartingPoint == null) {
                     Toast.makeText(MainActivity.this, "Unable to fetch Current location. Please try again", Toast.LENGTH_SHORT).show();
                 } else {
+                    addLocation(Destination);
                     Intent i = new Intent(MainActivity.this, Navigation.class);
                     i.putExtra("Destination", Destination);
                     i.putExtra("Origin", mStartingPoint);
@@ -252,11 +253,38 @@ public class MainActivity extends AppCompatActivity {
         return networkInfo != null && networkInfo.isConnected();
     }
 
+    public void addLocation(String location) {
+        if (mRecentLocations == null) {
+            mRecentLocations = new ArrayList<String>();
+        }
+        mRecentLocations.add(location);
+        
+        SharedPreferences prefs = getSharedPreferences("recent_locations", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        try {
+            editor.putString("location", ObjectSerializer.serialize(mRecentLocations));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        editor.apply();
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
         startService(new Intent(this, TrackingService.class));
         if (!mBound) doBindService();
+        if (null == mRecentLocations) {
+            mRecentLocations = new ArrayList<String>();
+        }
+
+        SharedPreferences prefs = getSharedPreferences("recent_locations", Context.MODE_PRIVATE);
+        try {
+            mRecentLocations = (ArrayList<String>) ObjectSerializer.deserialize(prefs.getString("location", ObjectSerializer.serialize(new ArrayList<String>())));
+            Log.i("Locations", mRecentLocations.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

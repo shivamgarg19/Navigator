@@ -88,7 +88,6 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         //AsyncTask task = new JsonTask(this).execute(url);
         // Use below for testing
         AsyncTask task = new JsonTask(this).execute("https://pastebin.com/raw/8pA4bgcz");
-
         doBindService();
     }
 
@@ -185,7 +184,7 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        Log.e("string", result);
+        //Log.e("string", result);
 
         mTimeToReach.setText("ETA: " + getDuration(jsonObject));
         listView = (ListView) findViewById(R.id.list);
