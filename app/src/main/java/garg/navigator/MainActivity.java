@@ -26,8 +26,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean mBound = false, gps = false;
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
 
+    private ListView recentsView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,37 +88,22 @@ public class MainActivity extends AppCompatActivity {
                 if (actionId != EditorInfo.IME_ACTION_GO) {
                     return false;
                 }
-
-                String Destination = mDestination.getText().toString();
-
-                if (!isMyServiceRunning(TrackingService.class)) {
-                    Log.e("Service", "Not Running");
-                    startService(new Intent(MainActivity.this, TrackingService.class));
-                    if (!mBound) doBindService();
-                }
-                if (mMyService.location != null) {
-                    Location location = mMyService.location.getLastLocation();
-                    mStartingPoint = String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude());
-                }
-                if (!checkGPS()) {
-                    Toast.makeText(MainActivity.this, "You need to enable to GPS", Toast.LENGTH_SHORT).show();
-                    turnGPSOn();
-                } else if (Destination.length() == 0) {
-                    Toast.makeText(MainActivity.this, "Please enter the destination", Toast.LENGTH_SHORT).show();
-                } else if (!checkConnectivity()) {
-                    Toast.makeText(MainActivity.this, "No Internet connection available", Toast.LENGTH_SHORT).show();
-                } else if (mStartingPoint == null) {
-                    Toast.makeText(MainActivity.this, "Unable to fetch Current location. Please try again", Toast.LENGTH_SHORT).show();
-                } else {
-                    Intent i = new Intent(MainActivity.this, Navigation.class);
-                    i.putExtra("Destination", Destination);
-                    i.putExtra("Origin", mStartingPoint);
-                    i.putExtra("IPAddress", new ArrayList<String>(mIPAddresses));
-                    startActivity(i);
-                }
+                navigate();
                 return false;
             }
         });
+
+        final Button navigate = (Button) findViewById(R.id.navigate);
+        navigate.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                navigate();
+            }
+        });
+
+        recentsView = (ListView) findViewById(R.id.recent_list);
+        recentsView.setAdapter(new ArrayAdapter<String>(
+                this, R.layout.recent_list_item, R.id.recent_text, new String[] {"IIITDMJ", "Russell Chowk"}));
     }
 
     private boolean checkPermission() {
@@ -125,6 +114,36 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestPermission() {
         ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_CODE);
+    }
+
+    private void navigate() {
+        String Destination = mDestination.getText().toString();
+
+        if (!isMyServiceRunning(TrackingService.class)) {
+            Log.e("Service", "Not Running");
+            startService(new Intent(MainActivity.this, TrackingService.class));
+            if (!mBound) doBindService();
+        }
+        if (mMyService.location != null) {
+            Location location = mMyService.location.getLastLocation();
+            mStartingPoint = String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude());
+        }
+        if (!checkGPS()) {
+            Toast.makeText(MainActivity.this, "You need to enable to GPS", Toast.LENGTH_SHORT).show();
+            turnGPSOn();
+        } else if (Destination.length() == 0) {
+            Toast.makeText(MainActivity.this, "Please enter the destination", Toast.LENGTH_SHORT).show();
+        } else if (!checkConnectivity()) {
+            Toast.makeText(MainActivity.this, "No Internet connection available", Toast.LENGTH_SHORT).show();
+        } else if (mStartingPoint == null) {
+            Toast.makeText(MainActivity.this, "Unable to fetch Current location. Please try again", Toast.LENGTH_SHORT).show();
+        } else {
+            Intent i = new Intent(MainActivity.this, Navigation.class);
+            i.putExtra("Destination", Destination);
+            i.putExtra("Origin", mStartingPoint);
+            i.putExtra("IPAddress", new ArrayList<String>(mIPAddresses));
+            startActivity(i);
+        }
     }
 
     @Override
