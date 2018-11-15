@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:background="@color/colorPrimaryDark"
-        android:fontFamily="@font/montserrat_regular"
+        android:fontFamily="@font/montserrat"
         android:text="Destination: Loading..."
         android:textColor="@color/colorPrimary"
         android:textSize="24sp"
@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:background="@color/colorPrimaryDark"
-        android:fontFamily="@font/montserrat_regular"
+        android:fontFamily="@font/montserrat"
         android:paddingTop="3dp"
         android:paddingBottom="3dp"
         android:text="ETA: Loading..."
@@ -55,7 +55,7 @@
 
     <ListView
         android:id="@+id/list"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginStart="4dp"
         android:layout_marginTop="8dp"
