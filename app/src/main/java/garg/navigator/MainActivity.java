@@ -1,5 +1,6 @@
 package garg.navigator;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -9,6 +10,7 @@ import android.content.IntentSender;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -19,6 +21,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -65,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (!checkPermission()) {
             requestPermission();
-        } else {
+        } else if (!checkGPS()) {
             turnGPSOn();
         }
         mNavigationButton = (Button) findViewById(R.id.navigate);
@@ -77,11 +81,16 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 String Destination = mDestination.getText().toString();
 
+                if (!isMyServiceRunning(TrackingService.class)) {
+                    Log.e("Service", "Not Running");
+                    startService(new Intent(MainActivity.this, TrackingService.class));
+                    if (!mBound) doBindService();
+                }
                 if (mMyService.location != null) {
                     Location location = mMyService.location.getLastLocation();
                     mStartingPoint = String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude());
                 }
-                if (!gps) {
+                if (!checkGPS()) {
                     Toast.makeText(MainActivity.this, "You need to enable to GPS", Toast.LENGTH_SHORT).show();
                     turnGPSOn();
                 } else if (Destination.length() == 0) {
@@ -119,9 +128,10 @@ public class MainActivity extends AppCompatActivity {
 
                     boolean locationAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
 
-                    if (locationAccepted)
+                    if (locationAccepted) {
                         Log.e("per", "Permission Granted");
-                    else {
+                        if (!checkGPS()) turnGPSOn();
+                    } else {
                         Log.e("per", "Permission Denied");
 
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -163,7 +173,13 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    private boolean checkGPS() {
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        return locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+
     private void turnGPSOn() {
+        if (checkGPS()) return;
         GoogleApiClient googleApiClient = new GoogleApiClient.Builder(MainActivity.this)
                 .addApi(LocationServices.API).build();
         googleApiClient.connect();
@@ -185,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
                     LocationSettingsResponse response = task.getResult(ApiException.class);
                     // All location settings are satisfied. The client can initialize location
                     // requests here.
-                    Log.e("GPS","Enabled");
+                    Log.e("GPS", "Enabled");
                     gps = true;
                     startService(new Intent(MainActivity.this, TrackingService.class));
 
@@ -258,6 +274,35 @@ public class MainActivity extends AppCompatActivity {
         Log.e("Service", "Service Stopped");
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int i = item.getItemId();
+        if (i == R.id.about) {
+            showAboutDialogBox();
+            return true;
+        }  else {
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void showAboutDialogBox() {
+        final AlertDialog.Builder aboutDialogBox = new AlertDialog.Builder(MainActivity.this);
+        aboutDialogBox.setTitle("About");
+        aboutDialogBox.setMessage(getResources().getString(R.string.about));
+        aboutDialogBox.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+        aboutDialogBox.show();
+
+    }
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -282,10 +327,19 @@ public class MainActivity extends AppCompatActivity {
         mBound = false;
     }
 
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private class MyDatagramReceiver extends Thread {
         private boolean bKeepRunning = true;
-        private String lastMessage = "";
 
         public void run() {
             Log.i("broadcast-listener", "udp listener started");
