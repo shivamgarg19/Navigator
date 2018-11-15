@@ -1,6 +1,7 @@
 package garg.navigator;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,7 +41,9 @@ public class Adapter extends ArrayAdapter<Model> {
 
         ImageView image = (ImageView) listItemView.findViewById(R.id.icon);
         int id = getContext().getResources().getIdentifier("garg.navigator:drawable/" + current.getDirection().toString(), null, null);
+
         image.setImageResource(id);
+        image.setColorFilter(Color.parseColor("#FF7E64"));
         return listItemView;
     }
 }
