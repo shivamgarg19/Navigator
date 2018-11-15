@@ -1,8 +1,10 @@
 package garg.navigator;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -14,6 +16,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -210,6 +214,37 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         Thread.interrupted();
         //t.interrupted();
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int i = item.getItemId();
+        if (i == R.id.about) {
+            showAboutDialogBox();
+            return true;
+        }  else {
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void showAboutDialogBox() {
+        final AlertDialog.Builder aboutDialogBox = new AlertDialog.Builder(Navigation.this);
+        aboutDialogBox.setTitle("About");
+        aboutDialogBox.setMessage(getResources().getString(R.string.about));
+        aboutDialogBox.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+        aboutDialogBox.show();
+
+    }
+
 
     private class JsonTask extends AsyncTask<String, String, String> {
         private JsonCallback cb;
