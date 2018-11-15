@@ -71,7 +71,7 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         Log.e("origin", mOrigin);
         mDestinationText = (TextView) findViewById(R.id.text_destination);
         mTimeToReach = (TextView) findViewById(R.id.time_to_reach);
-        mDestinationText.setText("Destination:- " + mDestination);
+        mDestinationText.setText("Destination: " + mDestination);
         Uri uri = Uri.parse(BASE_URL)
                 .buildUpon()
                 .appendQueryParameter("origin", mOrigin)
@@ -81,9 +81,9 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         String url = uri.toString();
         Log.e("url", url);
 
-        AsyncTask task = new JsonTask(this).execute(url);
+        //AsyncTask task = new JsonTask(this).execute(url);
         // Use below for testing
-        //AsyncTask task = new JsonTask(this).execute("https://pastebin.com/raw/8pA4bgcz");
+        AsyncTask task = new JsonTask(this).execute("https://pastebin.com/raw/8pA4bgcz");
 
         doBindService();
     }
@@ -183,7 +183,7 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         }
         Log.e("string", result);
 
-        mTimeToReach.setText("Total time:- " + getDuration(jsonObject));
+        mTimeToReach.setText("Total time: " + getDuration(jsonObject));
         listView = (ListView) findViewById(R.id.list);
         mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
         listView.setEmptyView(mEmptyStateTextView);

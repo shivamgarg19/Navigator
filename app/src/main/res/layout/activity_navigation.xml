@@ -9,24 +9,24 @@
     tools:context="garg.navigator.Navigation">
 
     <TextView
-        android:textSize="24sp"
         android:id="@+id/text_destination"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Destination : LHTC, IIITDMJ" />
+        android:text="Destination: Loading..."
+        android:textSize="24sp" />
 
     <TextView
-        android:textSize="20sp"
         android:id="@+id/time_to_reach"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Total time:- 10 min" />
+        android:text="Total time: Loading..."
+        android:textSize="20sp" />
 
     <TextView
-        android:paddingTop="16dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Directions:-" />
+        android:paddingTop="16dp"
+        android:text="Directions:" />
 
     <ListView
         android:id="@+id/list"
