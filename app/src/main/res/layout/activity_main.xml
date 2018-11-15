@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="top|fill_vertical"
         android:orientation="vertical">
 
@@ -21,91 +20,91 @@
             android:tint="@color/colorPrimaryDark"
             app:srcCompat="@drawable/logo_transparent" />
 
-        <android.support.constraint.ConstraintLayout
+        <RelativeLayout
             android:id="@+id/linearLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:paddingTop="20dp">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center">
 
             <EditText
                 android:id="@+id/destination"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginEnd="24dp"
+                android:layout_marginStart="24dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
                 android:background="@drawable/rounded_corner"
                 android:fontFamily="@font/montserrat"
                 android:hint="Destination"
                 android:imeOptions="actionGo"
                 android:inputType="text"
-                app:layout_constraintEnd_toStartOf="@+id/navigate"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/navigate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/rounded_corner"
-                android:backgroundTint="@color/colorAccent"
-                android:text="Navigate"
-                android:textColor="@color/colorPrimary"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/destination"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:layout_alignRight="@+id/destination"
+                android:layout_centerVertical="true"
+                android:background="@android:color/transparent"
+                android:paddingEnd="4dp"
+                android:paddingTop="6dp"
+                android:src="@drawable/search"
+                android:text="Button" />
 
-            <TextView
-                android:id="@+id/device_connected"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="40dp"
-                android:background="@drawable/rounded_corner"
-                android:backgroundTint="@color/colorAccent"
-                android:fontFamily="@font/montserrat"
-                android:text="Devices Connected: 0"
-                android:textAlignment="center"
-                android:textAllCaps="false"
-                android:textColor="@color/colorPrimary"
-                android:textSize="18sp"
-                android:typeface="sans"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/destination" />
+        </RelativeLayout>
 
-            <TextView
-                android:id="@+id/recent_label"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:background="@color/colorPrimaryDark"
-                android:paddingTop="3dp"
-                android:paddingBottom="3dp"
-                android:text="Recent Locations"
-                android:textColor="@color/colorPrimary"
-                android:textSize="20sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/device_connected" />
+        <TextView
+            android:id="@+id/device_connected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="36dp"
+            android:background="@drawable/rounded_corner"
+            android:backgroundTint="@color/colorAccent"
+            android:fontFamily="@font/montserrat"
+            android:text="Devices Connected: 0"
+            android:textAlignment="center"
+            android:textAllCaps="false"
+            android:textColor="@color/colorPrimary"
+            android:textSize="18sp"
+            android:typeface="sans"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/destination" />
 
-            <ListView
-                android:id="@+id/recent_list"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="10dp"
-                android:paddingTop="8dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/recent_label" />
+        <TextView
+            android:id="@+id/recent_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:background="@color/colorPrimaryDark"
+            android:paddingBottom="8dp"
+            android:paddingTop="4dp"
+            android:fontFamily="@font/montserrat"
+            android:text="Recent Locations"
+            android:textColor="@color/colorPrimary"
+            android:textSize="30sp"
+            android:paddingStart="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/device_connected" />
 
-        </android.support.constraint.ConstraintLayout>
+        <ListView
+            android:id="@+id/recent_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/recent_label" />
 
 
     </LinearLayout>

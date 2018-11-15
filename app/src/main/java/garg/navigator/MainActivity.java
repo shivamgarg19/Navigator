@@ -33,6 +33,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -104,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final Button navigate = (Button) findViewById(R.id.navigate);
+        final ImageButton navigate = (ImageButton) findViewById(R.id.navigate);
         navigate.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -27,7 +27,7 @@
         android:layout_marginTop="8dp"
         android:background="@color/colorPrimaryDark"
         android:fontFamily="@font/montserrat"
-        android:paddingBottom="6dp"
+        android:paddingBottom="3dp"
         android:paddingStart="12dp"
         android:paddingTop="6dp"
         android:text="Destination: Loading..."
