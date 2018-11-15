@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         recentsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                navigate(mRecentLocations.get(i));
+                mDestination.setText(mRecentLocations.get(i));
             }
         });
     }
