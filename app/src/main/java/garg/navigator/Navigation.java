@@ -55,7 +55,7 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
     private String mDestination, mOrigin;
     private TextView mDestinationText, mTimeToReach, mEmptyStateTextView;
     private String BASE_URL = "https://maps.googleapis.com/maps/api/directions/json?",
-            API_KEY = "AIzaSyCP0gezR6_JdbV2FphQIaQCRPQ2oOLaVqk";
+            API_KEY = "AIzaSyDVHjlahxmG1b057l__UY5e9NsMqCEG3FI";
     ProgressDialog pd;
     private JSONObject jsonObject;
     private Adapter adapter;
@@ -93,9 +93,9 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
         String url = uri.toString();
         Log.e("url", url);
 
-        //AsyncTask task = new JsonTask(this).execute(url);
+        AsyncTask task = new JsonTask(this).execute(url);
         // Use below for testing
-        AsyncTask task = new JsonTask(this).execute("https://pastebin.com/raw/8pA4bgcz");
+        //AsyncTask task = new JsonTask(this).execute("https://pastebin.com/raw/8pA4bgcz");
         doBindService();
     }
 
