@@ -29,9 +29,9 @@
                 android:id="@+id/destination"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="24dp"
                 android:layout_marginStart="24dp"
                 android:layout_marginTop="8dp"
+                android:layout_marginEnd="24dp"
                 android:background="@drawable/rounded_corner"
                 android:fontFamily="@font/montserrat"
                 android:hint="Destination"
@@ -49,8 +49,8 @@
                 android:layout_alignRight="@+id/destination"
                 android:layout_centerVertical="true"
                 android:background="@android:color/transparent"
+                android:paddingTop="8dp"
                 android:paddingEnd="4dp"
-                android:paddingTop="6dp"
                 android:src="@drawable/search"
                 android:text="Button" />
 
@@ -58,41 +58,61 @@
 
         <TextView
             android:id="@+id/device_connected"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginStart="8dp"
             android:layout_marginTop="36dp"
-            android:background="@drawable/rounded_corner"
-            android:backgroundTint="@color/colorAccent"
+            android:background="@color/colorPrimaryDark"
+            android:paddingStart="16dp"
             android:fontFamily="@font/montserrat"
             android:text="Devices Connected: 0"
-            android:textAlignment="center"
             android:textAllCaps="false"
             android:textColor="@color/colorPrimary"
-            android:textSize="18sp"
+            android:textSize="24sp"
             android:typeface="sans"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/destination" />
 
-        <TextView
-            android:id="@+id/recent_label"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:background="@color/colorPrimaryDark"
-            android:paddingBottom="8dp"
-            android:paddingTop="4dp"
-            android:fontFamily="@font/montserrat"
-            android:text="Recent Locations"
-            android:textColor="@color/colorPrimary"
-            android:textSize="30sp"
-            android:paddingStart="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/device_connected" />
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/recent_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginTop="10dp"
+                android:background="@color/colorPrimaryDark"
+                android:fontFamily="@font/montserrat"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="8dp"
+                android:text="Recent Locations"
+                android:textColor="@color/colorPrimary"
+                android:textSize="30sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <ImageButton
+                android:id="@+id/clearRecent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignRight="@id/recent_label"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="10dp"
+                android:paddingTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@android:color/transparent"
+                android:tint="@color/colorPrimary"
+                android:paddingBottom="8dp"
+                android:text="Clear Search"
+                app:srcCompat="@drawable/clear_search" />
+        </RelativeLayout>
 
         <ListView
             android:id="@+id/recent_list"
@@ -101,8 +121,7 @@
             android:paddingTop="4dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/recent_label" />
+            app:layout_constraintStart_toStartOf="parent" />
 
 
     </LinearLayout>

@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
     ArrayList<String> mRecentLocations;
 
-    private ListView recentsView;
+    private ListView mRecentsView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,11 +113,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        recentsView = (ListView) findViewById(R.id.recent_list);
-        recentsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mRecentsView = (ListView) findViewById(R.id.recent_list);
+        mRecentsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 mDestination.setText(mRecentLocations.get(i));
+            }
+        });
+
+        final ImageButton clearRecent = (ImageButton) findViewById(R.id.clearRecent);
+        clearRecent.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.i("clear", "cleared");
+                clearLocations();
             }
         });
     }
@@ -298,6 +307,21 @@ public class MainActivity extends AppCompatActivity {
             mRecentLocations.add(0, location);
         }
         
+        syncLocationPreferences();
+    }
+
+    public void clearLocations() {
+        if (mRecentLocations == null || mRecentLocations.isEmpty()) {
+            return;
+        }
+
+        mRecentLocations.clear();
+        syncLocationPreferences();
+    }
+
+    public void syncLocationPreferences() {
+        mRecentsView.invalidateViews();
+
         SharedPreferences prefs = getSharedPreferences("recent_locations", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         try {
@@ -325,7 +349,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        recentsView.setAdapter(new ArrayAdapter<String>(
+        mRecentsView.setAdapter(new ArrayAdapter<String>(
                 this, R.layout.recent_list_item, R.id.recent_text, mRecentLocations));
     }
 
@@ -442,7 +466,7 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                mDeviceConnected.setText(String.format("Device Connected: %d", mIPAddresses.size()));
+                                mDeviceConnected.setText(String.format("Devices Connected: %d", mIPAddresses.size()));
                             }
                         });
                     }
