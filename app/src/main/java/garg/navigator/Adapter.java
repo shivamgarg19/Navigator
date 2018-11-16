@@ -40,7 +40,8 @@ public class Adapter extends ArrayAdapter<Model> {
         time.setText(current.getTime());
 
         ImageView image = (ImageView) listItemView.findViewById(R.id.icon);
-        int id = getContext().getResources().getIdentifier("garg.navigator:drawable/" + current.getDirection().toString(), null, null);
+        String img = current.getDirection().toString().replaceAll("-", "_");
+        int id = getContext().getResources().getIdentifier("garg.navigator:drawable/" + img, null, null);
 
         image.setImageResource(id);
         image.setColorFilter(Color.parseColor("#FF7E64"));
