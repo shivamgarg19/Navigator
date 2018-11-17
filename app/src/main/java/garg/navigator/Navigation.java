@@ -89,12 +89,9 @@ public class Navigation extends AppCompatActivity implements JsonCallback {
                 .build();
         String url = uri.toString();
         Log.e("url", url);
-
-        if (mDestination.equals("Hall 3 Canteen")) {
-            AsyncTask task = new JsonTask(this).execute("https://pastebin.com/raw/YxafbiEz");
-        } else {
-            AsyncTask task = new JsonTask(this).execute(url);
-        }
+        
+        AsyncTask task = new JsonTask(this).execute(url);
+        
         doBindService();
     }
 
