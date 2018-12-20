@@ -12,3 +12,8 @@ The second part is the haptic unit, which consists of two clipon devices for the
 VISHNU is supported by a mobile application which sends it the required information. The
 user only has to enter their destination and the app brings them the directions. The basic UI
 of the app is as follows.
+
+![Screenshot](Screenshot/1.png)
+![Screenshot](Screenshot/2.png)
+![Screenshot](Screenshot/3.png)
+![Screenshot](Screenshot/4.png)
